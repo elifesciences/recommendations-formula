@@ -1,2 +1,3 @@
 # recommendations-formula
-eLife Recommendations formula (deliverable for SA)
+
+Salt formula to build instances of [https://github.com/elifesciences/recommendations]

@@ -1,0 +1,14 @@
+base:
+    '*':
+        - elife
+        - elife.php7
+        - elife.nginx
+        - elife.nginx-php7
+        - elife.mysql-server
+        - elife.mysql-client
+        - elife.puli
+        - api-dummy
+        - recommendations
+        - recommendations.processes
+        - recommendations.api-dummy
+        - elife.proofreader-php
