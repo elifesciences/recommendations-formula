@@ -24,7 +24,7 @@ recommendations-repository:
 
 recommendations-cache:
     file.directory:
-        - name: /srv/recommendations/cache
+        - name: /srv/recommendations/var
         - user: {{ pillar.elife.webserver.username }}
         - group: {{ pillar.elife.webserver.username }}
         - dir_mode: 775
@@ -38,11 +38,11 @@ recommendations-cache:
 recommendations-composer-install:
     cmd.run:
         {% if pillar.elife.env in ['prod', 'demo', 'end2end'] %}
-        - name: composer1.0 --no-interaction install --classmap-authoritative --no-dev
+        - name: composer1.0 --no-interaction install --classmap-authoritative --no-dev --no-scripts
         {% elif pillar.elife.env in ['ci'] %}
-        - name: composer1.0 --no-interaction install --classmap-authoritative
+        - name: composer1.0 --no-interaction install --classmap-authoritative --no-scripts
         {% else %}
-        - name: composer1.0 --no-interaction install
+        - name: composer1.0 --no-interaction install --no-scripts
         {% endif %}
         - cwd: /srv/recommendations/
         - user: {{ pillar.elife.deploy_user.username }}
@@ -107,25 +107,31 @@ recommendations-database-access:
             - recommendations-database
             - recommendations-database-user
 
-## IF WE USE PROPEL
-recommendations-propel-config:
+recommendations-database-configuration:
     file.managed:
-        - name: /srv/recommendations/propel.yml
+        - name: /srv/recommendations/config/db.ini
+        - source: salt://recommendations/config/srv-recommendations-config-db.ini
         - user: {{ pillar.elife.deploy_user.username }}
         - group: {{ pillar.elife.deploy_user.username }}
-        - source: salt://recommendations/config/srv-recommendations-propel.yml
+        - makedirs: True
         - template: jinja
         - require:
-            - recommendations-repository
-recommendations-propel:
+            - recommendations-database-user
+
+recommendations-create-database:
     cmd.run:
+        {% if pillar.elife.env in ['prod', 'demo', 'end2end'] %}
+        - name: ./bin/console generate:database --env={{ pillar.elife.env }}
+        {% else %}
+        - name: ./bin/console generate:database --delete --env={{ pillar.elife.env }}
+        {% endif %}
+        - cwd: /srv/recommendations/
         - user: {{ pillar.elife.deploy_user.username }}
-        - cwd: /srv/recommendations
-        - name: composer1.0 run sync
         - require:
-            - composer-install
-            - file: recommendations-propel-config
-            - mysql_grants: recommendations-database-access
+            - recommendations-composer-install
+            - recommendations-database-configuration
+            - aws-credentials-cli
+
 
 {% if pillar.elife.env in ['dev', 'ci'] %}
 recommendations-import-content:
