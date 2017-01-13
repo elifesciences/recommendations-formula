@@ -81,7 +81,7 @@ recommendations-database:
 
 recommendations-database-user:
     mysql_user.present:
-        - name: {{ pillar.recommendations.db.user }}
+        - name: {{ pillar.recommendations.db.username }}
         - password: {{ pillar.recommendations.db.password }}
         - connection_pass: {{ pillar.elife.db_root.password }}
         {% if pillar.elife.env in ['dev'] %}
@@ -94,7 +94,7 @@ recommendations-database-user:
 
 recommendations-database-access:
     mysql_grants.present:
-        - user: {{ pillar.recommendations.db.user }}
+        - user: {{ pillar.recommendations.db.username }}
         - connection_pass: {{ pillar.elife.db_root.password }}
         - database: {{ pillar.recommendations.db.name }}.*
         - grant: all privileges
