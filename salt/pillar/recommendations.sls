@@ -1,7 +1,7 @@
 recommendations:
     db:
         name: recommendations
-        user: recommendations
+        username: recommendations
         password: recommendations
     aws:
         access_key_id: null
