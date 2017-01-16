@@ -9,6 +9,6 @@ base:
         - elife.puli
         - api-dummy
         - recommendations
-        - recommendations.processes
+        #- recommendations.processes
         - recommendations.api-dummy
         - elife.proofreader-php
