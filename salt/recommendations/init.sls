@@ -35,6 +35,11 @@ recommendations-cache:
         - require:
             - recommendations-repository
 
+    cmd.run:
+        - name: chmod -R g+s /srv/recommendations/var
+        - require:
+            - file: recommendations-cache
+
 recommendations-composer-install:
     cmd.run:
         {% if pillar.elife.env in ['prod', 'demo', 'end2end'] %}
