@@ -120,7 +120,7 @@ recommendations-database-configuration:
 
 recommendations-create-database:
     cmd.run:
-        {% if pillar.elife.env in ['prod', 'demo', 'end2end'] %}
+        {% if pillar.elife.env in ['prod', 'end2end'] %}
         - name: ./bin/console generate:database --env={{ pillar.elife.env }}
         {% else %}
         - name: ./bin/console generate:database --delete --env={{ pillar.elife.env }}
