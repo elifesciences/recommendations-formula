@@ -122,6 +122,7 @@ recommendations-database-configuration:
         - template: jinja
         - require:
             - recommendations-database-user
+            - recommendations-repository
 
 recommendations-create-database:
     cmd.run:
