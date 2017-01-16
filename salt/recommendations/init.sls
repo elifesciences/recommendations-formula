@@ -123,7 +123,7 @@ recommendations-create-database:
         {% if pillar.elife.env in ['prod', 'end2end'] %}
         - name: ./bin/console generate:database --env={{ pillar.elife.env }}
         {% else %}
-        - name: ./bin/console generate:database --delete --env={{ pillar.elife.env }}
+        - name: ./bin/console generate:database --drop --env={{ pillar.elife.env }}
         {% endif %}
         - cwd: /srv/recommendations/
         - user: {{ pillar.elife.deploy_user.username }}
