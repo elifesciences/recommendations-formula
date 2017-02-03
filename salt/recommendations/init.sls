@@ -22,6 +22,31 @@ recommendations-repository:
         - require:
             - builder: recommendations-repository
 
+aws-credentials-cli:
+    file.managed:
+        - name: /home/{{ pillar.elife.deploy_user.username }}/.aws/credentials
+        - source: salt://recommendations/config/home-user-.aws-credentials
+        - user: {{ pillar.elife.deploy_user.username }}
+        - group: {{ pillar.elife.deploy_user.username }}
+        - makedirs: True
+        - template: jinja
+        - require:
+            - deploy-user
+
+{% if pillar.elife.env in ['dev', 'ci'] %}
+recommendations-queue-create:
+    cmd.run:
+        - name: aws sqs create-queue --region=us-east-1 --queue-name=recommendations--{{ pillar.elife.env }} --endpoint=http://localhost:4100
+        - cwd: /home/{{ pillar.elife.deploy_user.username }}
+        - user: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - goaws-init
+            - aws-credentials-cli
+        - require_in:
+            - recommendations-console-ready
+{% endif %}
+
+
 recommendations-cache:
     file.directory:
         - name: /srv/recommendations/var
@@ -65,17 +90,6 @@ recommendations-nginx-vhost:
         - listen_in:
             - service: nginx-server-service
             - service: php-fpm
-
-aws-credentials-cli:
-    file.managed:
-        - name: /home/{{ pillar.elife.deploy_user.username }}/.aws/credentials
-        - source: salt://recommendations/config/home-user-.aws-credentials
-        - user: {{ pillar.elife.deploy_user.username }}
-        - group: {{ pillar.elife.deploy_user.username }}
-        - makedirs: True
-        - template: jinja
-        - require:
-            - deploy-user
 
 recommendations-database:
     mysql_database.present:
@@ -124,6 +138,14 @@ recommendations-database-configuration:
             - recommendations-database-user
             - recommendations-repository
 
+recommendations-console-ready:
+    cmd.run:
+        - name: ./bin/console --env={{ pillar.elife.env }}
+        - cwd: /srv/recommendations/
+        - user: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - recommendations-composer-install
+
 recommendations-create-database:
     cmd.run:
         {% if pillar.elife.env in ['prod', 'end2end'] %}
@@ -134,10 +156,9 @@ recommendations-create-database:
         - cwd: /srv/recommendations/
         - user: {{ pillar.elife.deploy_user.username }}
         - require:
-            - recommendations-composer-install
+            - recommendations-console-ready
             - recommendations-database-configuration
             - aws-credentials-cli
-
 
 {% if pillar.elife.env in ['dev', 'ci'] %}
 recommendations-import-content:
@@ -150,7 +171,6 @@ recommendations-import-content:
             - api-dummy-nginx-vhost-recommendations
 {% endif %}
 
-# For when we have processes.
 {% set processes = ['queue-watch'] %}
 {% for process in processes %}
 recommendations-{{ process }}-service:
