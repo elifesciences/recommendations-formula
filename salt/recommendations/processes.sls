@@ -1,19 +1,26 @@
-{% set processes = {} %}
+{% set processes = {'recommendations-queue-watch': 1} %}
+
 {% for process, number in processes.iteritems() %}
-recommendations-{{ process }}-task:
+{{process}}-old-restart-tasks:
+    file.absent:
+        - name: /etc/init/{{ process }}s.conf
+{% endfor %}
+
+recommendations-processes-task:
     file.managed:
-        - name: /etc/init/recommendations-{{ process }}.conf
-        - source: salt://elife/config/etc-init-multiple-processes.conf
+        - name: /etc/init/recommendations-processes.conf
+        - source: salt://elife/config/etc-init-multiple-processes-parallel.conf
         - template: jinja
         - context:
-            process: recommendations-{{ process }}
-            number: {{ number }}
+            processes: {{ processes }}
+            timeout: 60
         - require:
-            - file: recommendations-{{ process }}-service
+            {% for process, _number in processes.iteritems() %}
+            - file: {{ process }}-service
+            {% endfor %}
 
-recommendations-{{ process }}-start:
+recommendations-processes-start:
     cmd.run:
-        - name: start recommendations-{{ process }}
+        - name: start recommendations-bot-processes
         - require:
-            - recommendations-{{ process }}-task
-{% endfor %}
+            - recommendations-processes-task

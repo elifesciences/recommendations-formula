@@ -151,7 +151,7 @@ recommendations-import-content:
 {% endif %}
 
 # For when we have processes.
-{% set processes = [] %}
+{% set processes = ['queue-watch'] %}
 {% for process in processes %}
 recommendations-{{ process }}-service:
     file.managed:
