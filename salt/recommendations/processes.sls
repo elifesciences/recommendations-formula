@@ -21,6 +21,6 @@ recommendations-processes-task:
 
 recommendations-processes-start:
     cmd.run:
-        - name: start recommendations-bot-processes
+        - name: start recommendations-processes
         - require:
             - recommendations-processes-task
