@@ -190,17 +190,6 @@ recommendations-create-database:
             - recommendations-database-configuration
             - aws-credentials-cli
 
-{% if pillar.elife.env in ['dev', 'ci'] %}
-recommendations-import-content:
-    cmd.run:
-        - name: ./bin/ci-import {{ pillar.elife.env }}
-        - cwd: /srv/recommendations/
-        - user: {{ pillar.elife.deploy_user.username }}
-        - require:
-            - recommendations-composer-install
-            - api-dummy-nginx-vhost-recommendations
-{% endif %}
-
 {% set processes = ['queue-watch'] %}
 {% for process in processes %}
 recommendations-{{ process }}-service:
