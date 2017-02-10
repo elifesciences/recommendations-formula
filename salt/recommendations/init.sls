@@ -47,7 +47,7 @@ recommendations-queue-create:
 {% endif %}
 
 
-recommendations-cache:
+recommendations-var-folder:
     file.directory:
         - name: /srv/recommendations/var
         - user: {{ pillar.elife.webserver.username }}
@@ -63,7 +63,17 @@ recommendations-cache:
     cmd.run:
         - name: chmod -R g+s /srv/recommendations/var
         - require:
-            - file: recommendations-cache
+            - file: recommendations-var-folder
+
+recommendations-logs:
+    cmd.run:
+        - name: |
+            mkdir -p logs
+            chmod 775 logs
+        - cwd: /srv/recommendations/var/
+        - user: {{ pillar.elife.webserver.username }}
+        - require:
+            - recommendations-var-folder
 
 recommendations-composer-install:
     cmd.run:
@@ -77,7 +87,7 @@ recommendations-composer-install:
         - cwd: /srv/recommendations/
         - user: {{ pillar.elife.deploy_user.username }}
         - require:
-            - recommendations-cache
+            - recommendations-var-folder
 
 recommendations-nginx-vhost:
     file.managed:
@@ -98,7 +108,7 @@ syslog-ng-recommendations-logs:
         - template: jinja
         - require:
             - pkg: syslog-ng
-            - recommendations-composer-install
+            - recommendations-logs
         - listen_in:
             - service: syslog-ng
 
@@ -107,6 +117,8 @@ logrotate-recommendations-logs:
         - name: /etc/logrotate.d/recommendations
         - source: salt://recommendations/config/etc-logrotate.d-recommendations
         - template: jinja
+        - require:
+            - recommendations-logs
 
 recommendations-database:
     mysql_database.present:
@@ -162,6 +174,7 @@ recommendations-console-ready:
         - user: {{ pillar.elife.deploy_user.username }}
         - require:
             - recommendations-composer-install
+            - recommendations-logs
 
 recommendations-create-database:
     cmd.run:
