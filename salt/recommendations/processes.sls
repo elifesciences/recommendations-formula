@@ -1,4 +1,4 @@
-{% set processes = {'recommendations-queue-watch': 1} %}
+{% set processes = {'recommendations-queue-watch': 3} %}
 
 {% for process, number in processes.iteritems() %}
 {{process}}-old-restart-tasks:
