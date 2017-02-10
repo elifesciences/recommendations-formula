@@ -91,6 +91,23 @@ recommendations-nginx-vhost:
             - service: nginx-server-service
             - service: php-fpm
 
+syslog-ng-recommendations-logs:
+    file.managed:
+        - name: /etc/syslog-ng/conf.d/recommendations.conf
+        - source: salt://recommendations/config/etc-syslog-ng-conf.d-recommendations.conf
+        - template: jinja
+        - require:
+            - pkg: syslog-ng
+            - recommendations-composer-install
+        - listen_in:
+            - service: syslog-ng
+
+logrotate-recommendations-logs:
+    file.managed:
+        - name: /etc/logrotate.d/recommendations
+        - source: salt://recommendations/config/etc-logrotate.d-recommendations
+        - template: jinja
+
 recommendations-database:
     mysql_database.present:
         - name: {{ pillar.recommendations.db.name }}
