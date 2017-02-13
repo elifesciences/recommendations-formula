@@ -200,4 +200,5 @@ recommendations-{{ process }}-service:
         - require:
             - aws-credentials-cli
             - recommendations-composer-install
+            - recommendations-create-database
 {% endfor %}
