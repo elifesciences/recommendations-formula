@@ -77,7 +77,7 @@ recommendations-logs:
 
 recommendations-composer-install:
     cmd.run:
-        {% if pillar.elife.env in ['prod', 'demo', 'end2end'] %}
+        {% if pillar.elife.env in ['prod', 'demo', 'end2end', 'continuumtest'] %}
         - name: composer1.0 --no-interaction install --classmap-authoritative --no-dev
         {% elif pillar.elife.env in ['ci'] %}
         - name: composer1.0 --no-interaction install --classmap-authoritative
@@ -178,7 +178,7 @@ recommendations-console-ready:
 
 recommendations-create-database:
     cmd.run:
-        {% if pillar.elife.env in ['prod', 'end2end'] %}
+        {% if pillar.elife.env in ['prod', 'end2end', 'continuumtest'] %}
         - name: ./bin/console generate:database --env={{ pillar.elife.env }}
         {% else %}
         - name: ./bin/console generate:database --drop --env={{ pillar.elife.env }}
