@@ -6,7 +6,6 @@ base:
         - elife.nginx-php7
         - elife.mysql-server
         - elife.mysql-client
-        - elife.puli
         - api-dummy
         - recommendations
         #- recommendations.processes
