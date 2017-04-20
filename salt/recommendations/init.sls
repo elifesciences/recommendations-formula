@@ -175,6 +175,16 @@ recommendations-console-ready:
             - recommendations-composer-install
             - recommendations-logs
 
+recommendations-annotation-cache-clear:
+    cmd.run:
+        - name: |
+            rm -rf var/cache/annotations
+            rm -rf var/cache/metadata
+        - cwd: /srv/recommendations
+        - user: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - recommendations-console-ready
+
 recommendations-create-database:
     cmd.run:
         {% if pillar.elife.env in ['prod', 'end2end', 'continuumtest'] %}
@@ -187,6 +197,7 @@ recommendations-create-database:
         - require:
             - recommendations-console-ready
             - recommendations-database-configuration
+            - recommendations-annotation-cache-clear
             - aws-credentials-cli
 
 {% set processes = ['queue-watch'] %}
