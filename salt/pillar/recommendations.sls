@@ -9,3 +9,4 @@ recommendations:
         region: us-east-1
 api_dummy:
     standalone: False
+    pinned_revision_file: /srv/recommendations/api-dummy.sha1
