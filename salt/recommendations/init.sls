@@ -1,10 +1,13 @@
 recommendations-legacy-removal:
+    service.dead:
+        - names:
+              - goaws
     pkg.purged:
         - pkgs:
-            - golang-go
-            - mysql-client
-            - mysql-server
-            - python-mysqldb
+              - golang-go
+              - mysql-client
+              - mysql-server
+              - python-mysqldb
     file.absent:
         - names:
               - /etc/init/goaws-init.conf
@@ -16,6 +19,7 @@ recommendations-legacy-removal:
               - /srv/api-dummy/
               - /srv/recommendations/config/
               - /srv/recommendations/var/cache/
+              - /usr/local/src/github.com/
 
 recommendations-repository:
     builder.git_latest:
