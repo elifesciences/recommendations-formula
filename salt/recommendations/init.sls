@@ -1,3 +1,22 @@
+recommendations-legacy-removal:
+    pkg.purged:
+        - pkgs:
+            - golang-go
+            - mysql-client
+            - mysql-server
+            - python-mysqldb
+    file.absent:
+        - names:
+              - /etc/init/goaws-init.conf
+              - /etc/init/recommendations-processes.conf
+              - /etc/init/recommendations-queue-watch.conf
+              - /etc/mysql/
+              - /etc/nginx/sites-enabled/api-dummy-recommendations.conf
+              - /home/{{ pillar.elife.deploy_user.username }}/.aws/
+              - /srv/api-dummy/
+              - /srv/recommendations/config/
+              - /srv/recommendations/var/cache/
+
 recommendations-repository:
     builder.git_latest:
         - name: git@github.com:elifesciences/recommendations.git
@@ -20,31 +39,6 @@ recommendations-repository:
             - group
         - require:
             - builder: recommendations-repository
-
-aws-credentials-cli:
-    file.managed:
-        - name: /home/{{ pillar.elife.deploy_user.username }}/.aws/credentials
-        - source: salt://recommendations/config/home-user-.aws-credentials
-        - user: {{ pillar.elife.deploy_user.username }}
-        - group: {{ pillar.elife.deploy_user.username }}
-        - makedirs: True
-        - template: jinja
-        - require:
-            - deploy-user
-
-{% if pillar.elife.env in ['dev', 'ci'] %}
-recommendations-queue-create:
-    cmd.run:
-        - name: aws sqs create-queue --region=us-east-1 --queue-name=recommendations--{{ pillar.elife.env }} --endpoint=http://localhost:4100
-        - cwd: /home/{{ pillar.elife.deploy_user.username }}
-        - user: {{ pillar.elife.deploy_user.username }}
-        - require:
-            - goaws-init
-            - aws-credentials-cli
-        - require_in:
-            - recommendations-console-ready
-{% endif %}
-
 
 recommendations-var-folder:
     file.directory:
@@ -74,18 +68,31 @@ recommendations-logs:
         - require:
             - recommendations-var-folder
 
+recommendations-configuration:
+    file.managed:
+        - name: /srv/recommendations/config.php
+        - source: salt://recommendations/config/srv-recommendations-config.php
+        - user: {{ pillar.elife.deploy_user.username }}
+        - group: {{ pillar.elife.deploy_user.username }}
+        - template: jinja
+        - require:
+            - recommendations-repository
+
 recommendations-composer-install:
     cmd.run:
         {% if pillar.elife.env in ['prod', 'demo', 'end2end', 'continuumtest'] %}
-        - name: composer --no-interaction install --classmap-authoritative --no-dev
-        {% elif pillar.elife.env in ['ci'] %}
-        - name: composer --no-interaction install --classmap-authoritative
+        - name: composer --no-interaction install --no-suggest --classmap-authoritative --no-dev
+        {% elif pillar.elife.env != 'dev' %}
+        - name: composer --no-interaction install --no-suggest --classmap-authoritative
         {% else %}
-        - name: composer --no-interaction install
+        - name: composer --no-interaction install --no-suggest
         {% endif %}
         - cwd: /srv/recommendations/
         - user: {{ pillar.elife.deploy_user.username }}
+        - env:
+            - COMPOSER_DISCARD_CHANGES: 'true'
         - require:
+            - recommendations-configuration
             - recommendations-var-folder
 
 recommendations-nginx-vhost:
@@ -118,97 +125,3 @@ logrotate-recommendations-logs:
         - template: jinja
         - require:
             - recommendations-logs
-
-recommendations-database:
-    mysql_database.present:
-        - name: {{ pillar.recommendations.db.name }}
-        - connection_pass: {{ pillar.elife.db_root.password }}
-        - require:
-            - mysql-ready
-
-recommendations-database-user:
-    mysql_user.present:
-        - name: {{ pillar.recommendations.db.username }}
-        - password: {{ pillar.recommendations.db.password }}
-        - connection_pass: {{ pillar.elife.db_root.password }}
-        {% if pillar.elife.env in ['dev'] %}
-        - host: '%'
-        {% else %}
-        - host: localhost
-        {% endif %}
-        - require:
-            - mysql-ready
-
-recommendations-database-access:
-    mysql_grants.present:
-        - user: {{ pillar.recommendations.db.username }}
-        - connection_pass: {{ pillar.elife.db_root.password }}
-        - database: {{ pillar.recommendations.db.name }}.*
-        - grant: all privileges
-        {% if pillar.elife.env in ['dev'] %}
-        - host: '%'
-        {% else %}
-        - host: localhost
-        {% endif %}
-        - require:
-            - recommendations-database
-            - recommendations-database-user
-
-recommendations-database-configuration:
-    file.managed:
-        - name: /srv/recommendations/config/db.ini
-        - source: salt://recommendations/config/srv-recommendations-config-db.ini
-        - user: {{ pillar.elife.deploy_user.username }}
-        - group: {{ pillar.elife.deploy_user.username }}
-        - makedirs: True
-        - template: jinja
-        - require:
-            - recommendations-database-user
-            - recommendations-repository
-
-recommendations-console-ready:
-    cmd.run:
-        - name: ./bin/console --env={{ pillar.elife.env }}
-        - cwd: /srv/recommendations/
-        - user: {{ pillar.elife.deploy_user.username }}
-        - require:
-            - recommendations-composer-install
-            - recommendations-logs
-
-recommendations-annotation-cache-clear:
-    cmd.run:
-        - name: |
-            rm -rf var/cache/annotations
-            rm -rf var/cache/metadata
-        - cwd: /srv/recommendations
-        - user: {{ pillar.elife.deploy_user.username }}
-        - require:
-            - recommendations-console-ready
-
-recommendations-create-database:
-    cmd.run:
-        {% if pillar.elife.env in ['prod', 'end2end', 'continuumtest'] %}
-        - name: ./bin/console generate:database --env={{ pillar.elife.env }}
-        {% else %}
-        - name: ./bin/console generate:database --drop --env={{ pillar.elife.env }}
-        {% endif %}
-        - cwd: /srv/recommendations/
-        - user: {{ pillar.elife.deploy_user.username }}
-        - require:
-            - recommendations-console-ready
-            - recommendations-database-configuration
-            - recommendations-annotation-cache-clear
-            - aws-credentials-cli
-
-{% set processes = ['queue-watch'] %}
-{% for process in processes %}
-recommendations-{{ process }}-service:
-    file.managed:
-        - name: /etc/init/recommendations-{{ process }}.conf
-        - source: salt://recommendations/config/etc-init-recommendations-{{ process }}.conf
-        - template: jinja
-        - require:
-            - aws-credentials-cli
-            - recommendations-composer-install
-            - recommendations-create-database
-{% endfor %}
