@@ -1,4 +1,6 @@
 recommendations:
+    api:
+        uri: https://api.elifesciences.org/
     db:
         name: recommendations
         username: recommendations
