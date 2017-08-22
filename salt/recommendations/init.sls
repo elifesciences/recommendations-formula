@@ -74,18 +74,31 @@ recommendations-logs:
         - require:
             - recommendations-var-folder
 
+recommendations-configuration:
+    file.managed:
+        - name: /srv/recommendations/config.php
+        - source: salt://recommendations/config/srv-recommendations-config.php
+        - user: {{ pillar.elife.deploy_user.username }}
+        - group: {{ pillar.elife.deploy_user.username }}
+        - template: jinja
+        - require:
+            - recommendations-repository
+
 recommendations-composer-install:
     cmd.run:
         {% if pillar.elife.env in ['prod', 'demo', 'end2end', 'continuumtest'] %}
-        - name: composer --no-interaction install --classmap-authoritative --no-dev
-        {% elif pillar.elife.env in ['ci'] %}
-        - name: composer --no-interaction install --classmap-authoritative
+        - name: composer --no-interaction install --no-suggest --classmap-authoritative --no-dev
+        {% elif pillar.elife.env != 'dev' %}
+        - name: composer --no-interaction install --no-suggest --classmap-authoritative
         {% else %}
-        - name: composer --no-interaction install
+        - name: composer --no-interaction install --no-suggest
         {% endif %}
         - cwd: /srv/recommendations/
         - user: {{ pillar.elife.deploy_user.username }}
+        - env:
+            - COMPOSER_DISCARD_CHANGES: 'true'
         - require:
+            - recommendations-configuration
             - recommendations-var-folder
 
 recommendations-nginx-vhost:
