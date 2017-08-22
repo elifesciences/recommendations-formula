@@ -1,25 +1,39 @@
+{% for number in range(1, 4) %}
+recommendations-legacy-remove-queue-watch-{{ number }}:
+    cmd.run:
+        - name: service recommendations-queue-watch stop ID={{ number }}
+        - onlyif:
+            - service recommendations-queue-watch status ID={{ number }}
+        - require_in:
+            - file: recommendations-legacy-removal
+{% endfor %}
+
 recommendations-legacy-removal:
     service.dead:
         - names:
-              - goaws
+            - goaws-init
     pkg.purged:
         - pkgs:
-              - golang-go
-              - mysql-client
-              - mysql-server
-              - python-mysqldb
+            - golang-src
+            - mysql-common
+    cmd.run:
+        - name: apt-get autoremove --yes --purge
+    pip.removed:
+        - names:
+            - awscli
     file.absent:
         - names:
-              - /etc/init/goaws-init.conf
-              - /etc/init/recommendations-processes.conf
-              - /etc/init/recommendations-queue-watch.conf
-              - /etc/mysql/
-              - /etc/nginx/sites-enabled/api-dummy-recommendations.conf
-              - /home/{{ pillar.elife.deploy_user.username }}/.aws/
-              - /srv/api-dummy/
-              - /srv/recommendations/config/
-              - /srv/recommendations/var/cache/
-              - /usr/local/src/github.com/
+            - /etc/init/goaws-init.conf
+            - /etc/init/recommendations-processes.conf
+            - /etc/init/recommendations-queue-watch.conf
+            - /etc/mysql/
+            - /etc/nginx/sites-enabled/api-dummy-recommendations.conf
+            - /home/{{ pillar.elife.deploy_user.username }}/.aws/
+            - /srv/api-dummy/
+            - /srv/recommendations/config/
+            - /srv/recommendations/var/cache/
+            - /usr/local/bin/goaws
+            - /usr/local/src/github.com/
 
 recommendations-repository:
     builder.git_latest:
