@@ -7,11 +7,11 @@ base:
         - elife.nginx-php7
         - elife.mysql-server
         - elife.mysql-client
-        - api-dummy
         - elife.proofreader-php
         - elife.golang
         - elife.goaws
         - elife.aws-cli
+        - api-dummy
         - recommendations
         #- recommendations.processes
         - recommendations.api-dummy
