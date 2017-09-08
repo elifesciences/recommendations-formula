@@ -8,10 +8,10 @@ base:
         - elife.mysql-server
         - elife.mysql-client
         - api-dummy
-        - recommendations
-        #- recommendations.processes
-        - recommendations.api-dummy
         - elife.proofreader-php
         - elife.golang
         - elife.goaws
         - elife.aws-cli
+        - recommendations
+        #- recommendations.processes
+        - recommendations.api-dummy
