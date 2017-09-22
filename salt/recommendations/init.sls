@@ -215,13 +215,14 @@ recommendations-create-database:
 
 {% set processes = ['queue-watch'] %}
 {% for process in processes %}
-recommendations-{{ process }}-service:
+recommendations-{{ process }}-init:
     file.managed:
+        {% if salt['grains.get']('oscodename') == 'trusty' %}
         - name: /etc/init/recommendations-{{ process }}.conf
         - source: salt://recommendations/config/etc-init-recommendations-{{ process }}.conf
+        {% else %}
+        - name: /lib/systemd/system/recommendations-{{ process }}@.service
+        - source: salt://recommendations/config/lib-systemd-system-recommendations-{{ process }}@.service
+        {% endif %}
         - template: jinja
-        - require:
-            - aws-credentials-cli
-            - recommendations-composer-install
-            - recommendations-create-database
 {% endfor %}

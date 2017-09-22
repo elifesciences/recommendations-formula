@@ -1,0 +1,10 @@
+[Unit]
+Description="elife-bot-processes (many)"
+After=network.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Restart=on-failure
+ExecStart=/opt/elife-bot-processes.sh
