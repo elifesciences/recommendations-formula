@@ -42,7 +42,7 @@ recommendations-queue-create:
             - goaws-init
             - aws-credentials-cli
         - require_in:
-            - recommendations-console-ready
+            - cmd: recommendations-console-ready
 {% endif %}
 
 
