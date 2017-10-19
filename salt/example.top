@@ -7,4 +7,3 @@ base:
         - elife.nginx-php7
         - recommendations
         - elife.proofreader-php
-        - recommendations
