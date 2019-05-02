@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-configmap
+data:
+  config.php: |
+    <?php
+    
+    return [
+        'api.uri' => '{{ .Values.apiUrl }}',
+    ];
