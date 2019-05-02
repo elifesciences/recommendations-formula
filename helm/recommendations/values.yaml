@@ -1,0 +1,9 @@
+image:
+  repository: elifesciences/recommendations
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+apiUrl: https://api.elifesciences.org
