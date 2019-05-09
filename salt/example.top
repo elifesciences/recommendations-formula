@@ -1,9 +1,6 @@
 base:
     '*':
         - elife
-        - elife.php7
-        - elife.composer
         - elife.nginx
-        - elife.nginx-php7
+        - elife.docker
         - recommendations
-        - elife.proofreader-php
