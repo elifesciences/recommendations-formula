@@ -126,4 +126,4 @@ recommendations-smoke-tests:
         - name: /srv/recommendations/smoke_tests.sh
         - mode: 755
         - require:
-            - recommendations-nginx-vhost
+            - recommendations-folder
