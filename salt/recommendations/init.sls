@@ -71,6 +71,12 @@ recommendations-docker-compose-containers-env:
         - require:
             - recommendations-folder
 
+# deprecated, remove when no longer necessary
+# if not stopped, may conflict with port 9000 forwarded from the host to the container
+stop-existing-php-fpm:
+    cmd.run:
+        - name: stop php7.0-fpm || true
+
 recommendations-docker-compose:
     file.managed:
         - name: /srv/recommendations/docker-compose.yml
