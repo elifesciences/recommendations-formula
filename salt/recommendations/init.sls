@@ -1,16 +1,4 @@
-recommendations-repository:
-    builder.git_latest:
-        - name: git@github.com:elifesciences/recommendations.git
-        - identity: {{ pillar.elife.projects_builder.key or '' }}
-        - rev: {{ salt['elife.rev']() }}
-        - branch: {{ salt['elife.branch']() }}
-        - target: /srv/recommendations/
-        - force_fetch: True
-        - force_checkout: True
-        - force_reset: True
-        - fetch_pull_requests: True
-        - require:
-            - composer
+recommendations-folder:
     file.directory:
         - name: /srv/recommendations
         - user: {{ pillar.elife.deploy_user.username }}
@@ -18,8 +6,6 @@ recommendations-repository:
         - recurse:
             - user
             - group
-        - require:
-            - builder: recommendations-repository
 
 recommendations-var-folder:
     file.directory:
@@ -32,7 +18,7 @@ recommendations-var-folder:
             - user
             - group
         - require:
-            - recommendations-repository
+            - recommendations-folder
 
     cmd.run:
         - name: chmod -R g+s /srv/recommendations/var
@@ -57,24 +43,46 @@ recommendations-configuration:
         - group: {{ pillar.elife.deploy_user.username }}
         - template: jinja
         - require:
-            - recommendations-repository
+            - recommendations-folder
 
-recommendations-composer-install:
-    cmd.run:
-        {% if pillar.elife.env in ['prod', 'demo', 'end2end', 'continuumtest'] %}
-        - name: composer --no-interaction install --no-suggest --classmap-authoritative --no-dev
-        {% elif pillar.elife.env != 'dev' %}
-        - name: composer --no-interaction install --no-suggest --classmap-authoritative
-        {% else %}
-        - name: composer --no-interaction install --no-suggest
-        {% endif %}
-        - cwd: /srv/recommendations/
+recommendations-docker-compose-env:
+    file.managed:
+        - name: /srv/recommendations/.env
+        - source: salt://recommendations/config/srv-recommendations-.env
         - user: {{ pillar.elife.deploy_user.username }}
-        - env:
-            - COMPOSER_DISCARD_CHANGES: 'true'
+        - group: {{ pillar.elife.deploy_user.username }}
+        - template: jinja
         - require:
-            - recommendations-configuration
-            - recommendations-var-folder
+            - recommendations-folder
+
+recommendations-docker-compose-containers-env:
+    file.managed:
+        - name: /srv/recommendations/containers.env
+        - source: salt://recommendations/config/srv-recommendations-containers.env
+        - user: {{ pillar.elife.deploy_user.username }}
+        - group: {{ pillar.elife.deploy_user.username }}
+        - template: jinja
+        - require:
+            - recommendations-folder
+
+recommendations-docker-compose:
+    file.managed:
+        - name: /srv/recommendations/docker-compose.yml
+        - source: salt://recommendations/config/srv-recommendations-docker-compose.yml
+        - user: {{ pillar.elife.deploy_user.username }}
+        - group: {{ pillar.elife.deploy_user.username }}
+        - template: jinja
+        - require:
+            - recommendations-docker-compose-env
+            - recommendations-docker-compose-containers-env
+
+    cmd.run:
+        - name: docker-compose up -d --force-recreate
+        - cwd: /srv/recommendations
+        - user: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - file: recommendations-docker-compose
+
 
 recommendations-nginx-vhost:
     file.managed:
@@ -83,10 +91,9 @@ recommendations-nginx-vhost:
         - template: jinja
         - require:
             - nginx-config
-            - recommendations-composer-install
+            - recommendations-docker-compose
         - listen_in:
             - service: nginx-server-service
-            - service: php-fpm
 
 syslog-ng-recommendations-logs:
     file.managed:
