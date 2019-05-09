@@ -7,6 +7,12 @@ recommendations-folder:
             - user
             - group
 
+recommendations-folder-old-git-repository:
+    file.absent:
+        - name: /srv/recommendations/.git
+        - require:
+            - recommendations-folder
+
 recommendations-var-folder:
     file.directory:
         - name: /srv/recommendations/var
