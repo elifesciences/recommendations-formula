@@ -91,7 +91,9 @@ recommendations-docker-compose:
             - recommendations-docker-compose-containers-env
 
     cmd.run:
-        - name: docker-compose up -d --force-recreate
+        - name: |
+            rm -f docker-compose.override.yml
+            docker-compose up -d --force-recreate
         - cwd: /srv/recommendations
         - user: {{ pillar.elife.deploy_user.username }}
         - require:
