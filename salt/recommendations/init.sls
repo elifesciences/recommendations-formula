@@ -124,5 +124,6 @@ recommendations-smoke-tests:
     file.managed:
         - source: salt://recommendations/config/srv-recommendations-smoke_tests.sh
         - name: /srv/recommendations/smoke_tests.sh
+        - mode: 755
         - require:
             - recommendations-nginx-vhost
