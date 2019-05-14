@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+    fpm:
+        image: "elifesciences/recommendations:${IMAGE_TAG}"
+        volumes:
+            - ./config.php:/srv/recommendations/config.php
+            - ./var:/srv/recommendations/var
+        ports:
+            - "9000:9000"
+        env_file:
+            - ./containers.env
+        restart: always
