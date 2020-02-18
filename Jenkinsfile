@@ -1,1 +1,1 @@
-elifeFormula('recommendations', '/srv/recommendations', null, ['s1604', 's1804'])
+elifeFormula('recommendations', '/srv/recommendations', null, ['standalone-next-salt'])
