@@ -37,7 +37,7 @@ recommendations-logs:
             mkdir -p logs
             chmod 775 logs
         - cwd: /srv/recommendations/var/
-        - user: {{ pillar.elife.webserver.username }}
+        - runas: {{ pillar.elife.webserver.username }}
         - require:
             - recommendations-var-folder
 
@@ -95,7 +95,7 @@ recommendations-docker-compose:
             rm -f docker-compose.override.yml
             docker-compose up -d --force-recreate
         - cwd: /srv/recommendations
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - require:
             - file: recommendations-docker-compose
 
