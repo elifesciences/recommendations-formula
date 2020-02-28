@@ -1,1 +1,1 @@
-elifeFormula('recommendations', '/srv/recommendations', null, ['sNextSalt'])
+elifeFormula('recommendations', '/srv/recommendations', null, ['snsalt'])
