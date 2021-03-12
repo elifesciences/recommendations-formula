@@ -1,0 +1,4 @@
+1. Get the application URL by running these commands:
+export FIRST_NODE_ADDRESS=$(kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="ExternalDNS").address')
+export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "recommendations.fullname" . }})
+echo http://$FIRST_NODE_ADDRESS:$NODE_PORT
