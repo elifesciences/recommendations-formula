@@ -1,6 +1,8 @@
 base:
     '*':
         - elife
-        - elife.nginx
+        #- elife.nginx
+        - elife.disable-nginx
+        - elife.caddy
         - elife.docker-native
         - recommendations

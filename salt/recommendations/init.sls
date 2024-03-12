@@ -99,8 +99,33 @@ recommendations-docker-compose:
         - require:
             - file: recommendations-docker-compose
 
+{% if pillar.elife.webserver.app == "caddy" %}
 
-recommendations-nginx-vhost:
+recommendations-caddy-requisite:
+    cmd.run:
+        - name: |
+            set -e
+            rm -rf /srv/recommendations/web
+            mkdir /srv/recommendations/web
+            touch /srv/recommendations/web/app.php
+        - runas: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - recommendations-folder
+
+recommendations-vhost:
+    file.managed:
+        - name: /etc/caddy/sites.d/recommendations
+        - source: salt://recommendations/config/etc-caddy-sites.d-recommendations
+        - template: jinja
+        - require:
+            - caddy-config
+            - recommendations-docker-compose
+            - recommendations-caddy-requisite
+        - listen_in:
+            - service: caddy-server-service
+
+{% else %}
+recommendations-vhost:
     file.managed:
         - name: /etc/nginx/sites-enabled/recommendations.conf
         - source: salt://recommendations/config/etc-nginx-sites-enabled-recommendations.conf
@@ -110,6 +135,8 @@ recommendations-nginx-vhost:
             - recommendations-docker-compose
         - listen_in:
             - service: nginx-server-service
+
+{% endif %}
 
 syslog-ng-recommendations-logs:
     file.managed:
