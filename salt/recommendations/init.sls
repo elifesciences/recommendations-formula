@@ -101,14 +101,11 @@ recommendations-docker-compose:
 
 {% if pillar.elife.webserver.app == "caddy" %}
 
-recommendations-caddy-requisite:
-    cmd.run:
-        - name: |
-            set -e
-            rm -rf /srv/recommendations/web
-            mkdir /srv/recommendations/web
-            touch /srv/recommendations/web/app.php
-        - runas: {{ pillar.elife.deploy_user.username }}
+recommendations-folder-web:
+    file.managed:
+        - name: /srv/recommendations/web/app.php
+        - contents: '# placeholder. Nginx and Caddy requires this file to pass requests to a php-fpm container'
+        - makedirs: True
         - require:
             - recommendations-folder
 
@@ -120,7 +117,7 @@ recommendations-vhost:
         - require:
             - caddy-config
             - recommendations-docker-compose
-            - recommendations-caddy-requisite
+            - recommendations-folder-web
         - listen_in:
             - service: caddy-server-service
 
