@@ -1,0 +1,39 @@
+(config) {
+    log {
+        output file /var/log/caddy/access.log
+        format json {
+            time_format rfc3339
+        }
+    }
+
+    root * /srv/recommendations/web
+
+    @no-direct-php-requests {
+       path *.php
+    }
+    handle @no-direct-php-requests {
+        error 403
+    }
+
+    handle {
+        try_files {path} /app.php?{query}
+
+        @app-env {
+            path_regexp ^/app\.php(/|$)
+        }
+        handle @app-env {
+            php_fastcgi localhost:9000 {
+                capture_stderr true
+
+                # how long to wait when connecting to the upstream socket
+                dial_timeout 3s # default
+            }
+        }
+
+        respond 404
+    }
+}
+
+:80 {
+    import config
+}
